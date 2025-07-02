@@ -1,0 +1,155 @@
+{% extends 'tensorzero_showcase/base.html' %}
+
+{% block title %}モデル比較 - TensorZero Demo{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">モデル比較</h2>
+    <p class="lead">複数のモデルからの応答を比較して、最適なモデルを選択しましょう。</p>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="prompt" class="form-label">プロンプト</label>
+                    <textarea class="form-control" id="prompt" name="prompt" rows="4" required placeholder="比較したいプロンプトを入力してください...">{{ request.POST.prompt }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">比較するモデル（最低2つ選択）</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="models" value="gpt-4" id="gpt4" {% if 'gpt-4' in request.POST.models %}checked{% endif %}>
+                                <label class="form-check-label" for="gpt4">
+                                    GPT-4 (OpenAI)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="models" value="claude-3-opus" id="claude3" {% if 'claude-3-opus' in request.POST.models %}checked{% endif %}>
+                                <label class="form-check-label" for="claude3">
+                                    Claude 3 Opus (Anthropic)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="models" value="mistral-large" id="mistral" {% if 'mistral-large' in request.POST.models %}checked{% endif %}>
+                                <label class="form-check-label" for="mistral">
+                                    Mistral Large
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="models" value="deepseek-v2" id="deepseek" {% if 'deepseek-v2' in request.POST.models %}checked{% endif %}>
+                                <label class="form-check-label" for="deepseek">
+                                    DeepSeek V2
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="models" value="fireworks-llama3" id="fireworks" {% if 'fireworks-llama3' in request.POST.models %}checked{% endif %}>
+                                <label class="form-check-label" for="fireworks">
+                                    Llama 3 (Fireworks)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="temperature" class="form-label">Temperature: <span id="temperatureValue">0.7</span></label>
+                            <input type="range" class="form-control-range" id="temperature" name="temperature" min="0" max="2" step="0.1" value="{{ request.POST.temperature|default:'0.7' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="max_tokens" class="form-label">最大トークン数</label>
+                            <input type="number" class="form-control" id="max_tokens" name="max_tokens" min="10" max="4000" value="{{ request.POST.max_tokens|default:'500' }}">
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">モデルを比較</button>
+            </form>
+        </div>
+    </div>
+    
+    {% if comparison %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">比較結果</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <strong>プロンプト:</strong>
+                <p class="text-muted">{{ comparison.prompt }}</p>
+            </div>
+            
+            <div class="row">
+                {% for result in comparison.results %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">{{ result.model_name }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2"><small class="text-muted">レスポンス時間: {{ result.response_time|floatformat:2 }}秒</small></p>
+                            <div class="response-content">
+                                {{ result.response|linebreaks }}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">推論ID: {{ result.inference_id }}</small>
+                                <button class="btn btn-sm btn-outline-primary" onclick="submitFeedback('{{ result.inference_id }}', 'quality', this)">
+                                    <i class="bi bi-star"></i> 評価
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-3 text-center">
+                <a href="{% url 'comparison_detail' comparison.id %}" class="btn btn-secondary">詳細を見る</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById('temperature').addEventListener('input', function(e) {
+    document.getElementById('temperatureValue').textContent = e.target.value;
+});
+
+function submitFeedback(inferenceId, metric, button) {
+    const value = prompt(`${metric}の評価値を入力してください (1-5):`, '5');
+    if (value && !isNaN(value) && value >= 1 && value <= 5) {
+        fetch('{% url "feedback_api" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                inference_id: inferenceId,
+                metric: metric,
+                value: parseFloat(value)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-success');
+                button.innerHTML = '<i class="bi bi-star-fill"></i> 評価済み';
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

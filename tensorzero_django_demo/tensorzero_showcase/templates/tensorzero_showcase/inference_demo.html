@@ -1,0 +1,135 @@
+{% extends 'tensorzero_showcase/base.html' %}
+
+{% block title %}推論デモ - TensorZero{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">推論デモ</h1>
+    <p class="lead">TensorZeroを使用して、さまざまなLLMモデルで推論を実行します。</p>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">推論パラメータ</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="model_name" class="form-label">モデル選択</label>
+                            <select class="form-select" id="model_name" name="model_name">
+                                <option value="openai::gpt-4o-mini">OpenAI GPT-4o Mini</option>
+                                <option value="anthropic::claude-3-haiku-20240307">Anthropic Claude 3 Haiku</option>
+                                <option value="mistral::mistral-small-latest">Mistral Small</option>
+                                <option value="deepseek::deepseek-chat">DeepSeek Chat</option>
+                                <option value="fireworks::llama-v3p3-70b-instruct">Llama 3.3 70B (Fireworks)</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                TensorZeroは統一されたAPIで複数のプロバイダーをサポートします
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="prompt" class="form-label">プロンプト</label>
+                            <textarea class="form-control" id="prompt" name="prompt" rows="6" required>日本の伝統文化について教えてください。特に茶道について詳しく説明してください。</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="temperature" class="form-label">Temperature</label>
+                                <input type="number" class="form-control" id="temperature" name="temperature" 
+                                       value="0.7" min="0" max="2" step="0.1">
+                                <small class="form-text text-muted">0 = 決定的、2 = 最もランダム</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="max_tokens" class="form-label">最大トークン数</label>
+                                <input type="number" class="form-control" id="max_tokens" name="max_tokens" 
+                                       value="1000" min="1" max="4000">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> 推論を実行
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">TensorZeroの特徴</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>統一API:</strong> 全てのLLMプロバイダーに同じインターフェースでアクセス
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>高性能:</strong> Rustで実装され、1ms未満のp99レイテンシ
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>観測可能性:</strong> 全ての推論を自動的に記録・保存
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>フォールバック:</strong> プロバイダー障害時の自動フェイルオーバー
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>A/Bテスト:</strong> 組み込みの実験機能
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">サンプルプロンプト</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary sample-prompt" 
+                                data-prompt="機械学習とディープラーニングの違いを初心者にもわかりやすく説明してください。">
+                            機械学習の基礎
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary sample-prompt" 
+                                data-prompt="量子コンピュータの原理と現在の応用例について教えてください。">
+                            量子コンピュータ
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary sample-prompt" 
+                                data-prompt="気候変動に対する最新の技術的解決策について説明してください。">
+                            気候変動対策
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary sample-prompt" 
+                                data-prompt="Pythonで簡単なWebスクレイピングを行うコードを書いてください。">
+                            コード生成
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // サンプルプロンプトのクリックハンドラ
+    document.querySelectorAll('.sample-prompt').forEach(button => {
+        button.addEventListener('click', function() {
+            const prompt = this.getAttribute('data-prompt');
+            document.getElementById('prompt').value = prompt;
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'tensorzero_showcase/base.html' %}
+
+{% block title %}TensorZero Demo - ホーム{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">TensorZero Demo</h1>
+                <p class="lead">産業グレードのLLMアプリケーションのためのオープンソーススタック</p>
+                <p>統一されたAPI、観測可能性、最適化、評価、実験機能を備えた次世代LLMゲートウェイ</p>
+                <div class="mt-4">
+                    <a href="{% url 'inference_demo' %}" class="btn btn-light btn-lg me-3">
+                        <i class="bi bi-play-circle"></i> 推論を試す
+                    </a>
+                    <a href="{% url 'model_comparison' %}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-graph-up"></i> モデル比較
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <i class="bi bi-diagram-3 feature-icon" style="font-size: 10rem; opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container py-5">
+    <h2 class="text-center mb-5">TensorZeroの主要機能</h2>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-globe feature-icon text-primary"></i>
+                    <h4 class="card-title">LLMゲートウェイ</h4>
+                    <p class="card-text">統一されたAPIで全ての主要なLLMプロバイダーにアクセス。1ms未満のp99レイテンシで高性能を実現。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-bar-chart-line feature-icon text-success"></i>
+                    <h4 class="card-title">観測可能性</h4>
+                    <p class="card-text">推論とフィードバックをデータベースに保存し、UIまたはプログラムで分析可能。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-lightning feature-icon text-warning"></i>
+                    <h4 class="card-title">最適化</h4>
+                    <p class="card-text">メトリクスと人間のフィードバックを収集して、プロンプト、モデル、推論戦略を最適化。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-clipboard-check feature-icon text-info"></i>
+                    <h4 class="card-title">評価</h4>
+                    <p class="card-text">ヒューリスティクスやLLMジャッジを使用して個々の推論をベンチマーク。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-shuffle feature-icon text-danger"></i>
+                    <h4 class="card-title">実験</h4>
+                    <p class="card-text">A/Bテスト、ルーティング、フォールバック、リトライなどで自信を持ってデプロイ。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-gear feature-icon text-secondary"></i>
+                    <h4 class="card-title">カスタマイズ可能</h4>
+                    <p class="card-text">セルフホスト、GitOps対応、拡張可能なアーキテクチャ。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Inferences -->
+{% if recent_inferences %}
+<div class="container py-5">
+    <h2 class="text-center mb-5">最近の推論</h2>
+    <div class="row">
+        {% for inference in recent_inferences %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <strong>{{ inference.model_name }}</strong>
+                    <span class="float-end text-muted">{{ inference.created_at|date:"Y/m/d H:i" }}</span>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>プロンプト:</strong></p>
+                    <p class="text-truncate">{{ inference.prompt|truncatechars:100 }}</p>
+                    <a href="{% url 'inference_detail' inference.pk %}" class="btn btn-sm btn-primary">
+                        詳細を見る <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Getting Started -->
+<div class="container py-5">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">実際のTensorZeroを使用するには</h3>
+            <p>このデモは、TensorZeroの機能をシミュレートしています。実際のTensorZeroを使用するには：</p>
+            <ol>
+                <li>TensorZero Gatewayをデプロイ</li>
+                <li>モデルプロバイダーを設定</li>
+                <li>views.pyのgateway_urlを更新</li>
+            </ol>
+            <pre><code># 例: TensorZeroクライアントの使用
+from tensorzero import TensorZeroGateway
+
+with TensorZeroGateway.build_http(gateway_url="http://localhost:3000") as client:
+    response = client.inference(
+        model_name="openai::gpt-4o-mini",
+        input={
+            "messages": [
+                {"role": "user", "content": "AIについて俳句を書いてください。"}
+            ]
+        }
+    )
+</code></pre>
+            <a href="https://github.com/tensorzero/tensorzero" target="_blank" class="btn btn-outline-primary">
+                <i class="bi bi-github"></i> GitHubで詳細を見る
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
