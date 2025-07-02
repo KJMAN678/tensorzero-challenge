@@ -1,0 +1,12 @@
+[project]
+name = "django-in-production-07"
+version = "0.1.0"
+description = "django-in-production 7章"
+readme = "README.md"
+requires-python = ">=3.12"
+
+[tool.uv]
+link-mode = "copy"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
